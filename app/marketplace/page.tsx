@@ -1,18 +1,21 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import Navbar from "@/components/navbar"
 import MarketplaceFilters from "@/components/marketplace-filters"
 import AgentCard from "@/components/agent-card"
 import ProfileModal from "@/components/profile-modal"
 import ChatInterface from "@/components/chat-interface"
-import { marketplaceAgents } from "@/data/marketplace-agents"
 import type { Agent, FilterState } from "@/types/agent"
+import { transformMetadataAgent } from "@/lib/agent-transformers"
 
 export default function MarketplacePage() {
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
   const [showChat, setShowChat] = useState(false)
   const [activeAgent, setActiveAgent] = useState<Agent | null>(null)
+  const [agents, setAgents] = useState<Agent[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<FilterState>({
     search: "",
     category: "all",
@@ -25,8 +28,38 @@ export default function MarketplacePage() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 12
 
+  // Fetch agents from API
+  useEffect(() => {
+    const fetchAgents = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        // Fetch from the agents metadata API
+        const response = await fetch('/api/agents/metadata')
+        const result = await response.json()
+        
+        if (result.success) {
+          // Transform the API data to match the Agent type
+          const transformedAgents: Agent[] = result.data.agents.map(transformMetadataAgent)
+          
+          setAgents(transformedAgents)
+        } else {
+          setError('Failed to fetch agents')
+        }
+      } catch (err) {
+        console.error('Error fetching agents:', err)
+        setError('Failed to load agents')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAgents()
+  }, [])
+
   const filteredAgents = useMemo(() => {
-    const filtered = marketplaceAgents.filter((agent) => {
+    const filtered = agents.filter((agent: Agent) => {
       // Search filter
       if (
         filters.search &&
@@ -61,13 +94,29 @@ export default function MarketplacePage() {
     })
 
     // Sorting
-    filtered.sort((a, b) => {
-      let aVal: number | string = a[filters.sortBy as keyof Agent]
-      let bVal: number | string = b[filters.sortBy as keyof Agent]
+    filtered.sort((a: Agent, b: Agent) => {
+      let aVal: number | string
+      let bVal: number | string
 
       if (filters.sortBy === "name") {
         aVal = a.name.toLowerCase()
         bVal = b.name.toLowerCase()
+      } else {
+        const aField = a[filters.sortBy as keyof Agent]
+        const bField = b[filters.sortBy as keyof Agent]
+        
+        // Handle different field types
+        if (typeof aField === "number" && typeof bField === "number") {
+          aVal = aField
+          bVal = bField
+        } else if (typeof aField === "string" && typeof bField === "string") {
+          aVal = aField
+          bVal = bField
+        } else {
+          // Fallback to string comparison
+          aVal = String(aField || "")
+          bVal = String(bField || "")
+        }
       }
 
       if (typeof aVal === "string" && typeof bVal === "string") {
@@ -82,7 +131,7 @@ export default function MarketplacePage() {
     })
 
     return filtered
-  }, [filters])
+  }, [agents, filters])
 
   const totalPages = Math.ceil(filteredAgents.length / itemsPerPage)
   const paginatedAgents = filteredAgents.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
@@ -151,7 +200,11 @@ export default function MarketplacePage() {
             {/* Results Header */}
             <div className="flex items-center justify-between mb-6">
               <div className="text-gray-300">
-                Showing {paginatedAgents.length} of {filteredAgents.length} assistants
+                {loading ? (
+                  "Loading agents..."
+                ) : (
+                  `Showing ${paginatedAgents.length} of ${filteredAgents.length} assistants`
+                )}
               </div>
 
               <div className="flex items-center space-x-4">
@@ -159,7 +212,10 @@ export default function MarketplacePage() {
                   value={`${filters.sortBy}-${filters.sortOrder}`}
                   onChange={(e) => {
                     const [sortBy, sortOrder] = e.target.value.split("-")
-                    handleFilterChange({ sortBy, sortOrder })
+                    handleFilterChange({ 
+                      sortBy, 
+                      sortOrder: sortOrder as "desc" | "asc" 
+                    })
                   }}
                   className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
@@ -173,46 +229,92 @@ export default function MarketplacePage() {
               </div>
             </div>
 
-            {/* Agent Grid */}
-            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-              {paginatedAgents.map((agent) => (
-                <AgentCard key={agent.id} agent={agent} onSelect={handleAgentSelect} />
-              ))}
-            </div>
+            {/* Loading State */}
+            {loading && (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+                <p className="text-gray-400 mt-4">Loading marketplace agents...</p>
+              </div>
+            )}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center space-x-2">
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/20 transition-colors"
+            {/* Error State */}
+            {error && !loading && (
+              <div className="text-center py-12">
+                <p className="text-red-400 mb-4">{error}</p>
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="bg-white/10 border border-white/20 rounded-lg px-6 py-2 text-white backdrop-blur-sm hover:bg-white/20 transition-colors"
                 >
-                  Previous
-                </button>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-4 py-2 border rounded-lg backdrop-blur-sm transition-colors ${
-                      currentPage === page
-                        ? "bg-purple-500 border-purple-500 text-white"
-                        : "bg-white/10 border-white/20 text-white hover:bg-white/20"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/20 transition-colors"
-                >
-                  Next
+                  Try Again
                 </button>
               </div>
+            )}
+
+            {/* Agent Grid */}
+            {!loading && !error && (
+              <>
+                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+                  {paginatedAgents.map((agent: Agent) => (
+                    <AgentCard key={agent.id} agent={agent} onSelect={handleAgentSelect} />
+                  ))}
+                </div>
+
+                {/* Empty State */}
+                {paginatedAgents.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-400">No agents match your current filters.</p>
+                    <button 
+                      onClick={() => setFilters({
+                        search: "",
+                        category: "all",
+                        priceRange: [0, 50],
+                        minRating: 0,
+                        specialties: [],
+                        sortBy: "rating",
+                        sortOrder: "desc",
+                      })} 
+                      className="mt-4 bg-white/10 border border-white/20 rounded-lg px-6 py-2 text-white backdrop-blur-sm hover:bg-white/20 transition-colors"
+                    >
+                      Clear Filters
+                    </button>
+                  </div>
+                )}
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center space-x-2">
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/20 transition-colors"
+                    >
+                      Previous
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-4 py-2 border rounded-lg backdrop-blur-sm transition-colors ${
+                          currentPage === page
+                            ? "bg-purple-500 border-purple-500 text-white"
+                            : "bg-white/10 border-white/20 text-white hover:bg-white/20"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/20 transition-colors"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

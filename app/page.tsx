@@ -1,75 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Navbar from "@/components/navbar"
 import AgentGrid from "@/components/agent-grid"
 import ProfileModal from "@/components/profile-modal"
 import ChatInterface from "@/components/chat-interface"
 import type { Agent } from "@/types/agent"
 import Link from "next/link"
-
-const mockAgents: Agent[] = [
-  {
-    id: "1",
-    name: "Content Strategy AI",
-    type: "clone",
-    description: "Expert in viral content creation, audience engagement strategies, and platform optimization",
-    avatar: "/placeholder.svg?height=80&width=80",
-    price: 5.99,
-    rating: 4.8,
-    totalChats: 1250,
-    specialties: ["Content Strategy", "Viral Marketing", "Audience Growth", "Platform Optimization"],
-    verified: true,
-    featured: true,
-    category: "content-creation",
-    lastUpdated: "2 hours ago",
-  },
-  {
-    id: "2",
-    name: "Educational Course Builder",
-    type: "generic",
-    description: "Helps create engaging educational content, course structures, and learning experiences",
-    avatar: "/placeholder.svg?height=80&width=80",
-    price: 8.99,
-    rating: 4.6,
-    totalChats: 890,
-    specialties: ["Course Design", "Learning Psychology", "Student Engagement", "Assessment Creation"],
-    verified: true,
-    featured: false,
-    category: "education",
-    lastUpdated: "1 day ago",
-  },
-  {
-    id: "3",
-    name: "Social Media Guru",
-    type: "clone",
-    description: "Advanced social media strategies, influencer marketing, and brand building expertise",
-    avatar: "/placeholder.svg?height=80&width=80",
-    price: 12.99,
-    rating: 4.9,
-    totalChats: 2100,
-    specialties: ["Social Media Strategy", "Influencer Marketing", "Brand Building", "Community Management"],
-    verified: true,
-    featured: true,
-    category: "social-media",
-    lastUpdated: "3 hours ago",
-  },
-  {
-    id: "4",
-    name: "Video Production Assistant",
-    type: "generic",
-    description: "Professional video creation guidance, editing techniques, and storytelling strategies",
-    avatar: "/placeholder.svg?height=80&width=80",
-    price: 7.99,
-    rating: 4.7,
-    totalChats: 650,
-    specialties: ["Video Production", "Storytelling", "Editing Techniques", "Visual Design"],
-    verified: false,
-    featured: false,
-    category: "video-production",
-    lastUpdated: "5 hours ago",
-  },
-]
+import { transformMetadataAgent } from "@/lib/agent-transformers"
 
 const testimonials = [
   {
@@ -99,6 +37,39 @@ export default function HomePage() {
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
   const [showChat, setShowChat] = useState(false)
   const [activeAgent, setActiveAgent] = useState<Agent | null>(null)
+  const [agents, setAgents] = useState<Agent[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch specific agents from API
+  useEffect(() => {
+    const fetchAgents = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        // Fetch specific agents by name from the alliance API
+        const response = await fetch('/api/agents/alliance?names=Neural Nexus,Synthetic Mind')
+        const result = await response.json()
+        
+        if (result.success) {
+          // Transform the API data to match the Agent type
+          const transformedAgents: Agent[] = result.data.agents.map(transformMetadataAgent)
+          
+          setAgents(transformedAgents)
+        } else {
+          setError('Failed to fetch agents')
+        }
+      } catch (err) {
+        console.error('Error fetching agents:', err)
+        setError('Failed to load agents')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAgents()
+  }, [])
 
   const handleAgentSelect = (agent: Agent) => {
     setSelectedAgent(agent)
@@ -391,7 +362,29 @@ export default function HomePage() {
                 Discover real examples of what you can achieve with MirrorMind
               </p>
             </div>
-            <AgentGrid agents={mockAgents} onAgentSelect={handleAgentSelect} />
+            
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                <p className="text-slate-400 mt-4">Loading featured agents...</p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <p className="text-red-400 mb-4">{error}</p>
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="clean-btn-secondary text-sm px-6 py-2"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : agents.length > 0 ? (
+              <AgentGrid agents={agents} onAgentSelect={handleAgentSelect} />
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-slate-400">No featured agents available at the moment.</p>
+              </div>
+            )}
           </section>
 
           {/* Testimonials */}
