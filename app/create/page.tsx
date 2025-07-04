@@ -3,14 +3,20 @@
 import { useState } from "react"
 import Navbar from "@/components/navbar"
 import Link from "next/link"
+import CloningProcessModal from "@/components/cloning-process-modal"
 
 export default function CreatePage() {
   const [selectedOption, setSelectedOption] = useState<"clone" | "assistant" | null>(null)
+  const [showCloningModal, setShowCloningModal] = useState(false)
 
   const handleOptionSelect = (option: "clone" | "assistant") => {
     setSelectedOption(option)
-    // Here you would typically navigate to the specific creation flow
-    console.log(`Starting ${option} creation process...`)
+    if (option === "clone") {
+      setShowCloningModal(true)
+    } else {
+      // Here you would typically navigate to the assistant creation flow
+      console.log(`Starting ${option} creation process...`)
+    }
   }
 
   return (
@@ -110,7 +116,12 @@ export default function CreatePage() {
                   </div>
                 </div>
 
-                <button className="clean-btn-primary w-full text-base py-3 font-semibold">Start Cloning Process</button>
+                <button
+                  onClick={() => handleOptionSelect("clone")}
+                  className="clean-btn-primary w-full text-base py-3 font-semibold"
+                >
+                  Start Cloning Process
+                </button>
               </div>
 
               {/* Custom Assistant Option */}
@@ -313,6 +324,9 @@ export default function CreatePage() {
                 </div>
               </div>
             </div>
+
+            {/* Cloning Process Modal */}
+            <CloningProcessModal isOpen={showCloningModal} onClose={() => setShowCloningModal(false)} />
           </div>
         </main>
       </div>
