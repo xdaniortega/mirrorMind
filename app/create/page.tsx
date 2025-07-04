@@ -17,6 +17,7 @@ export default function CreatePage() {
       // Here you would typically navigate to the assistant creation flow
       console.log(`Starting ${option} creation process...`)
     }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
