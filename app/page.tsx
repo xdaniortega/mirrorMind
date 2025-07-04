@@ -308,7 +308,7 @@ export default function HomePage() {
                     </div>
                   </div>
                 </div>
-                <Link href="/create" className="clean-btn-primary w-full text-sm py-3 px-6">
+                <Link href="/create" className="clean-btn-primary w-full text-sm py-3">
                   Create My Clone
                 </Link>
               </div>
@@ -374,7 +374,7 @@ export default function HomePage() {
                     </div>
                   </div>
                 </div>
-                <Link href="/create" className="clean-btn-primary w-full text-sm py-3 px-6">
+                <Link href="/create" className="clean-btn-primary w-full text-sm py-3">
                   Create Assistant
                 </Link>
               </div>
