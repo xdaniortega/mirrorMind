@@ -2,13 +2,16 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { usePrivy } from '@privy-io/react-auth'
 
 export default function Navbar() {
-  const [isConnected, setIsConnected] = useState(false)
+  const { ready, authenticated, login, logout, user } = usePrivy();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  const connectWallet = () => {
-    setIsConnected(true)
+  // Placeholder for Ledger login
+  const loginWithLedger = () => {
+    // TODO: Implement Ledger login logic
+    alert('Login with Ledger clicked!');
   }
 
   const toggleMobileMenu = () => {
@@ -63,13 +66,19 @@ export default function Navbar() {
 
         {/* Desktop Connect Wallet */}
         <div className="hidden md:flex items-center space-x-4">
-          {isConnected ? (
+          {!authenticated && (
+            <button onClick={loginWithLedger} className="clean-btn-secondary px-2 py-2 text-sm mr-2 flex items-center justify-center" aria-label="Login with Ledger">
+              <img src="/full-ledger-logo.svg" alt="Ledger Logo" className="h-6 w-auto" />
+            </button>
+          )}
+          {authenticated ? (
             <div className="flex items-center space-x-3 bg-emerald-500/10 px-4 py-2 rounded-lg border border-emerald-500/20">
               <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-              <span className="text-emerald-300 text-sm font-medium">0x1234...5678</span>
+              <span className="text-emerald-300 text-sm font-medium">{user?.wallet?.address ? `${user.wallet.address.slice(0,6)}...${user.wallet.address.slice(-4)}` : 'Wallet Connected'}</span>
+              <button onClick={logout} className="ml-2 text-xs text-emerald-300 underline">Logout</button>
             </div>
           ) : (
-            <button onClick={connectWallet} className="clean-btn-primary px-6 py-2 text-sm">
+            <button onClick={login} className="clean-btn-primary px-6 py-2 text-sm">
               Connect Wallet
             </button>
           )}
@@ -78,13 +87,19 @@ export default function Navbar() {
         {/* Mobile Menu */}
         <div className="md:hidden flex items-center space-x-3">
           {/* Mobile Connect Wallet - moved left */}
-          {isConnected ? (
+          {!authenticated && (
+            <button onClick={loginWithLedger} className="clean-btn-secondary px-2 py-1.5 text-xs mr-2 flex items-center justify-center" aria-label="Login with Ledger">
+              <img src="/full-ledger-logo.svg" alt="Ledger Logo" className="h-5 w-auto" />
+            </button>
+          )}
+          {authenticated ? (
             <div className="flex items-center space-x-2 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
               <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
-              <span className="text-emerald-300 text-xs font-medium">0x12...78</span>
+              <span className="text-emerald-300 text-xs font-medium">{user?.wallet?.address ? `${user.wallet.address.slice(0,4)}...${user.wallet.address.slice(-2)}` : 'Wallet'}</span>
+              <button onClick={logout} className="ml-1 text-[10px] text-emerald-300 underline">Logout</button>
             </div>
           ) : (
-            <button onClick={connectWallet} className="clean-btn-primary px-4 py-1.5 text-xs">
+            <button onClick={login} className="clean-btn-primary px-4 py-1.5 text-xs">
               Connect
             </button>
           )}
