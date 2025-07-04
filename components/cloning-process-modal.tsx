@@ -17,6 +17,14 @@ const steps = [
 export default function CloningProcessModal({ isOpen, onClose }: CloningProcessModalProps) {
   const [currentStep, setCurrentStep] = useState(1)
   const [qrCode, setQrCode] = useState("")
+  const [verificationQR, setVerificationQR] = useState("")
+  const [isGeneratingQR, setIsGeneratingQR] = useState(false)
+  const [formData, setFormData] = useState({
+    fullName: "",
+    professionalTitle: "",
+    bio: "",
+    areasOfExpertise: "",
+  })
 
   const handleGoBack = () => {
     if (currentStep > 1) {
@@ -33,6 +41,40 @@ export default function CloningProcessModal({ isOpen, onClose }: CloningProcessM
       setQrCode(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`)
     }
   }, [isOpen])
+
+  const generateVerificationQR = async () => {
+    setIsGeneratingQR(true)
+    try {
+      const response = await fetch("/api/generate-qr", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userData: formData,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setVerificationQR(result.qrCodeUrl)
+      } else {
+        console.error("Failed to generate QR:", result.error)
+      }
+    } catch (error) {
+      console.error("QR generation error:", error)
+    } finally {
+      setIsGeneratingQR(false)
+    }
+  }
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
 
   const handleStepComplete = () => {
     if (currentStep < 4) {
@@ -153,15 +195,27 @@ export default function CloningProcessModal({ isOpen, onClose }: CloningProcessM
               Complete your profile information to personalize your AI clone
             </p>
 
-            <div className="space-y-6 text-left max-w-md mx-auto">
+            <div className="space-y-6 text-left max-w-md mx-auto mb-8">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
-                <input type="text" placeholder="Enter your full name" className="premium-input" />
+                <input
+                  type="text"
+                  placeholder="Enter your full name"
+                  className="premium-input"
+                  value={formData.fullName}
+                  onChange={(e) => handleInputChange("fullName", e.target.value)}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">Professional Title</label>
-                <input type="text" placeholder="e.g., Content Creator, Entrepreneur" className="premium-input" />
+                <input
+                  type="text"
+                  placeholder="e.g., Content Creator, Entrepreneur"
+                  className="premium-input"
+                  value={formData.professionalTitle}
+                  onChange={(e) => handleInputChange("professionalTitle", e.target.value)}
+                />
               </div>
 
               <div>
@@ -170,16 +224,80 @@ export default function CloningProcessModal({ isOpen, onClose }: CloningProcessM
                   placeholder="Tell us about yourself and your expertise..."
                   rows={4}
                   className="premium-input resize-none"
+                  value={formData.bio}
+                  onChange={(e) => handleInputChange("bio", e.target.value)}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">Areas of Expertise</label>
-                <input type="text" placeholder="e.g., Marketing, Business, Technology" className="premium-input" />
+                <input
+                  type="text"
+                  placeholder="e.g., Marketing, Business, Technology"
+                  className="premium-input"
+                  value={formData.areasOfExpertise}
+                  onChange={(e) => handleInputChange("areasOfExpertise", e.target.value)}
+                />
               </div>
             </div>
 
-            <button onClick={handleStepComplete} className="liquid-glass-btn text-base px-8 py-3 mt-8">
+            {/* Identity Verification QR Code */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold premium-gradient-text mb-4">Identity Verification</h3>
+              <p className="text-slate-400 text-sm mb-6">Scan this QR code with the Self app to verify your identity</p>
+
+              {!verificationQR ? (
+                <button
+                  onClick={generateVerificationQR}
+                  disabled={isGeneratingQR || !formData.fullName}
+                  className="liquid-glass-btn-sm text-sm px-6 py-3 mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isGeneratingQR ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>Generating QR...</span>
+                    </div>
+                  ) : (
+                    "Generate Verification QR"
+                  )}
+                </button>
+              ) : (
+                <div className="bg-white p-4 rounded-2xl mb-6 inline-block shadow-lg">
+                  <img
+                    src={verificationQR || "/placeholder.svg"}
+                    alt="Identity Verification QR Code"
+                    className="w-48 h-48 mx-auto"
+                  />
+                </div>
+              )}
+
+              {verificationQR && (
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-6 max-w-md mx-auto">
+                  <div className="flex items-start space-x-3">
+                    <svg className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <div className="text-sm">
+                      <p className="text-blue-300 font-medium mb-1">Next Steps</p>
+                      <p className="text-blue-200/80 text-xs leading-relaxed">
+                        Open the Self app and scan this QR code to complete your identity verification. This ensures the
+                        authenticity of your AI clone.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={handleStepComplete}
+              className="liquid-glass-btn text-base px-8 py-3"
+              disabled={!verificationQR}
+            >
               Continue to Payment
             </button>
           </div>
