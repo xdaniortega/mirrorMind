@@ -18,6 +18,12 @@ export default function CloningProcessModal({ isOpen, onClose }: CloningProcessM
   const [currentStep, setCurrentStep] = useState(1)
   const [qrCode, setQrCode] = useState("")
 
+  const handleGoBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1)
+    }
+  }
+
   useEffect(() => {
     if (isOpen) {
       // Generate QR code URL for Self App download
@@ -254,8 +260,8 @@ export default function CloningProcessModal({ isOpen, onClose }: CloningProcessM
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="glass-card max-w-6xl w-full max-h-[90vh] overflow-hidden">
-        <div className="flex h-full">
+      <div className="glass-card max-w-6xl w-full h-[90vh] flex flex-col">
+        <div className="flex flex-1 min-h-0">
           {/* Left Side - Progress Bar */}
           <div className="w-80 bg-gradient-to-b from-slate-900/50 to-slate-950/50 p-8 border-r border-white/10">
             <div className="mb-8">
@@ -323,19 +329,33 @@ export default function CloningProcessModal({ isOpen, onClose }: CloningProcessM
           </div>
 
           {/* Right Side - Step Content */}
-          <div className="flex-1 p-8 overflow-y-auto">
-            <div className="flex justify-end mb-6">
-              <button
-                onClick={onClose}
-                className="text-slate-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="p-8 overflow-y-auto flex-1">
+              <div className="flex justify-between items-center mb-6">
+                {currentStep > 1 && (
+                  <button
+                    onClick={handleGoBack}
+                    className="flex items-center space-x-2 text-slate-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    <span className="text-sm font-medium">Back</span>
+                  </button>
+                )}
+                <div className="flex-1"></div>
+                <button
+                  onClick={onClose}
+                  className="text-slate-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
 
-            <div className="max-w-2xl mx-auto">{renderStepContent()}</div>
+              <div className="max-w-2xl mx-auto">{renderStepContent()}</div>
+            </div>
           </div>
         </div>
       </div>
