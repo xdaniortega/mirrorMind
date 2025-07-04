@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { SelfQRcodeWrapper, SelfAppBuilder } from "@selfxyz/qrcode"
+import { usePrivy } from '@privy-io/react-auth'
 
 interface CloningProcessModalProps {
   isOpen: boolean
@@ -8,17 +10,14 @@ interface CloningProcessModalProps {
 }
 
 const steps = [
-  { id: 1, title: "Download Self App", description: "Human verification" },
-  { id: 2, title: "Scan Passport", description: "Identity verification" },
-  { id: 3, title: "Fill Your Data", description: "Personal information" },
-  { id: 4, title: "Payment Process", description: "Complete setup" },
+  { id: 1, title: "Age Verification", description: "Verify you are 18+ years old" },
+  { id: 2, title: "Fill Your Data", description: "Personal information" },
+  { id: 3, title: "Payment Process", description: "Complete setup" },
 ]
 
 export default function CloningProcessModal({ isOpen, onClose }: CloningProcessModalProps) {
   const [currentStep, setCurrentStep] = useState(1)
-  const [qrCode, setQrCode] = useState("")
-  const [verificationQR, setVerificationQR] = useState("")
-  const [isGeneratingQR, setIsGeneratingQR] = useState(false)
+  const [verificationSuccess, setVerificationSuccess] = useState(false)
   const [formData, setFormData] = useState({
     fullName: "",
     professionalTitle: "",
@@ -26,60 +25,58 @@ export default function CloningProcessModal({ isOpen, onClose }: CloningProcessM
     areasOfExpertise: "",
   })
 
+  const { ready, user } = usePrivy()
+  const userAddress = user?.wallet?.address
+
   const handleGoBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
     }
   }
 
-  useEffect(() => {
-    if (isOpen) {
-      // Generate QR code URL for Self App download
-      const appStoreUrl = "https://apps.apple.com/app/self-app"
-      const playStoreUrl = "https://play.google.com/store/apps/details?id=com.selfapp"
-      const qrData = `selfapp://download?ios=${encodeURIComponent(appStoreUrl)}&android=${encodeURIComponent(playStoreUrl)}`
-      setQrCode(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`)
-    }
-  }, [isOpen])
-
-  const generateVerificationQR = async () => {
-    setIsGeneratingQR(true)
-    try {
-      const response = await fetch("/api/generate-qr", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userData: formData,
-        }),
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        setVerificationQR(result.qrCodeUrl)
-      } else {
-        console.error("Failed to generate QR:", result.error)
-      }
-    } catch (error) {
-      console.error("QR generation error:", error)
-    } finally {
-      setIsGeneratingQR(false)
-    }
+  const handleVerificationSuccess = () => {
+    console.log("Age verification successful!")
+    setVerificationSuccess(true)
+    setCurrentStep(2)
   }
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
+  const handleVerificationError = (error: any) => {
+    console.error("Verification failed:", error)
   }
 
-  const handleStepComplete = () => {
-    if (currentStep < 4) {
-      setCurrentStep(currentStep + 1)
+  const createSelfApp = () => {
+    if (!userAddress) {
+      console.error("No user address available")
+      return null
     }
+
+    // Create user defined data for context
+    const userDefinedData = JSON.stringify({
+      action: "age_verification",
+      required_age: 18
+    })
+
+    // Convert to hex and pad to 64 bytes (128 hex characters)
+    const hexData = Buffer.from(userDefinedData).toString('hex').padEnd(128, '0')
+
+    return new SelfAppBuilder({
+      appName: "MirrorMind AI Clone",
+      scope: "mirrormind-clone", // Keep under 25 characters
+      endpoint: "https://v0-react-web3-8e8z3ru3n-blockbyvlog-4382s-projects.vercel.app/api/verify",
+      endpointType: "staging_celo", // Use staging for development
+      logoBase64: "",
+      userId: userAddress,
+      userIdType: "hex",
+      version: 2, // V2 configuration
+      userDefinedData: "",
+      disclosures: {
+        // Only request age verification (18+)
+        minimumAge: 18,
+        // Optional: Add OFAC compliance for financial services
+        ofac: true
+      },
+      devMode: true // Set to false for production
+    }).build()
   }
 
   const renderStepContent = () => {
@@ -87,107 +84,113 @@ export default function CloningProcessModal({ isOpen, onClose }: CloningProcessM
       case 1:
         return (
           <div className="text-center">
-            <h2 className="text-2xl font-bold premium-gradient-text mb-4 tracking-tight">Install Self App</h2>
+            <h2 className="text-2xl font-bold premium-gradient-text mb-4 tracking-tight">Age Verification</h2>
             <p className="text-slate-300 text-lg mb-8 leading-relaxed">
-              Get started by installing the Self mobile app to create your digital identity
+              Verify that you are 18 years or older to continue with the cloning process
             </p>
 
-            <div className="bg-white p-6 rounded-2xl mb-6 inline-block shadow-lg">
-              <img
-                src={qrCode || "/placeholder.svg?height=200&width=200&text=QR"}
-                alt="Self App QR Code"
-                className="w-48 h-48 mx-auto"
-              />
-            </div>
-
-            <p className="text-slate-400 text-sm mb-8">
-              Scan this QR code with your phone camera to download the Self app
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <a
-                href="https://apps.apple.com/app/self-app"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center space-x-3 bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition-colors"
-              >
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
-                </svg>
-                <div className="text-left">
-                  <div className="text-xs">Download on the</div>
-                  <div className="text-sm font-semibold">App Store</div>
+            {!userAddress ? (
+              <div className="glass-card p-8 mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl mx-auto mb-6 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
                 </div>
-              </a>
-
-              <a
-                href="https://play.google.com/store/apps/details?id=com.selfapp"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center space-x-3 bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition-colors"
-              >
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z" />
-                </svg>
-                <div className="text-left">
-                  <div className="text-xs">Get it on</div>
-                  <div className="text-sm font-semibold">Google Play</div>
+                <h3 className="text-lg font-semibold text-white mb-3">Wallet Connection Required</h3>
+                <p className="text-slate-300 mb-4">Please connect your wallet to continue with the verification process.</p>
+                <button 
+                  onClick={() => window.location.href = '/'} 
+                  className="clean-btn-primary text-sm px-6 py-2"
+                >
+                  Connect Wallet
+                </button>
+              </div>
+            ) : (
+              <div className="glass-card p-8 mb-6">
+                <div className="mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-500 rounded-2xl mx-auto mb-6 flex items-center justify-center">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-3">Wallet Connected</h3>
+                  <p className="text-slate-300 text-sm font-mono break-all">{userAddress}</p>
                 </div>
-              </a>
-            </div>
 
-            <button onClick={handleStepComplete} className="liquid-glass-btn text-base px-8 py-3">
-              I've Installed the App
-            </button>
+                <div className="mb-6">
+                  <h4 className="text-md font-semibold text-white mb-3">Verification Requirements:</h4>
+                  <div className="space-y-2 text-left">
+                    <div className="flex items-center text-slate-300 text-sm">
+                      <svg className="w-4 h-4 text-green-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      Must be 18 years or older
+                    </div>
+                    <div className="flex items-center text-slate-300 text-sm">
+                      <svg className="w-4 h-4 text-green-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      Valid government-issued ID required
+                    </div>
+                    <div className="flex items-center text-slate-300 text-sm">
+                      <svg className="w-4 h-4 text-green-400 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      OFAC compliance check
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl mb-6">
+                  <SelfQRcodeWrapper
+                    selfApp={createSelfApp()}
+                    onSuccess={handleVerificationSuccess}
+                    onError={handleVerificationError}
+                    size={200}
+                  />
+                </div>
+
+                <p className="text-slate-400 text-sm mb-4">
+                  Scan this QR code with the Self mobile app to verify your age
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+                  <a
+                    href="https://apps.apple.com/app/self-app"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center space-x-3 bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition-colors"
+                  >
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
+                    </svg>
+                    <div className="text-left">
+                      <div className="text-xs">Download on the</div>
+                      <div className="text-sm font-semibold">App Store</div>
+                    </div>
+                  </a>
+
+                  <a
+                    href="https://play.google.com/store/apps/details?id=com.selfapp"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center space-x-3 bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition-colors"
+                  >
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z" />
+                    </svg>
+                    <div className="text-left">
+                      <div className="text-xs">Get it on</div>
+                      <div className="text-sm font-semibold">Google Play</div>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
         )
 
       case 2:
-        return (
-          <div className="text-center">
-            <h2 className="text-2xl font-bold premium-gradient-text mb-4 tracking-tight">Scan Your Passport</h2>
-            <p className="text-slate-300 text-lg mb-8 leading-relaxed">
-              Use the Self app to scan your passport for identity verification
-            </p>
-
-            <div className="glass-card p-8 mb-8">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-                <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-              </div>
-              <div className="space-y-3 text-left">
-                <div className="flex items-center text-slate-300">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
-                  <span className="text-sm">Open the Self app on your phone</span>
-                </div>
-                <div className="flex items-center text-slate-300">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
-                  <span className="text-sm">Select "Verify Identity"</span>
-                </div>
-                <div className="flex items-center text-slate-300">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
-                  <span className="text-sm">Scan your passport's data page</span>
-                </div>
-                <div className="flex items-center text-slate-300">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
-                  <span className="text-sm">Complete the verification process</span>
-                </div>
-              </div>
-            </div>
-
-            <button onClick={handleStepComplete} className="liquid-glass-btn text-base px-8 py-3">
-              Passport Verified
-            </button>
-          </div>
-        )
-
-      case 3:
         return (
           <div className="text-center">
             <h2 className="text-2xl font-bold premium-gradient-text mb-4 tracking-tight">Fill Your Data</h2>
@@ -203,7 +206,7 @@ export default function CloningProcessModal({ isOpen, onClose }: CloningProcessM
                   placeholder="Enter your full name"
                   className="premium-input"
                   value={formData.fullName}
-                  onChange={(e) => handleInputChange("fullName", e.target.value)}
+                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                 />
               </div>
 
@@ -214,7 +217,7 @@ export default function CloningProcessModal({ isOpen, onClose }: CloningProcessM
                   placeholder="e.g., Content Creator, Entrepreneur"
                   className="premium-input"
                   value={formData.professionalTitle}
-                  onChange={(e) => handleInputChange("professionalTitle", e.target.value)}
+                  onChange={(e) => setFormData({ ...formData, professionalTitle: e.target.value })}
                 />
               </div>
 
@@ -225,7 +228,7 @@ export default function CloningProcessModal({ isOpen, onClose }: CloningProcessM
                   rows={4}
                   className="premium-input resize-none"
                   value={formData.bio}
-                  onChange={(e) => handleInputChange("bio", e.target.value)}
+                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                 />
               </div>
 
@@ -236,74 +239,22 @@ export default function CloningProcessModal({ isOpen, onClose }: CloningProcessM
                   placeholder="e.g., Marketing, Business, Technology"
                   className="premium-input"
                   value={formData.areasOfExpertise}
-                  onChange={(e) => handleInputChange("areasOfExpertise", e.target.value)}
+                  onChange={(e) => setFormData({ ...formData, areasOfExpertise: e.target.value })}
                 />
               </div>
             </div>
 
-            {/* Identity Verification QR Code */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold premium-gradient-text mb-4">Identity Verification</h3>
-              <p className="text-slate-400 text-sm mb-6">Scan this QR code with the Self app to verify your identity</p>
-
-              {!verificationQR ? (
-                <button
-                  onClick={generateVerificationQR}
-                  disabled={isGeneratingQR || !formData.fullName}
-                  className="liquid-glass-btn-sm text-sm px-6 py-3 mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isGeneratingQR ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span>Generating QR...</span>
-                    </div>
-                  ) : (
-                    "Generate Verification QR"
-                  )}
-                </button>
-              ) : (
-                <div className="bg-white p-4 rounded-2xl mb-6 inline-block shadow-lg">
-                  <img
-                    src={verificationQR || "/placeholder.svg"}
-                    alt="Identity Verification QR Code"
-                    className="w-48 h-48 mx-auto"
-                  />
-                </div>
-              )}
-
-              {verificationQR && (
-                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-6 max-w-md mx-auto">
-                  <div className="flex items-start space-x-3">
-                    <svg className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <div className="text-sm">
-                      <p className="text-blue-300 font-medium mb-1">Next Steps</p>
-                      <p className="text-blue-200/80 text-xs leading-relaxed">
-                        Open the Self app and scan this QR code to complete your identity verification. This ensures the
-                        authenticity of your AI clone.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
             <button
-              onClick={handleStepComplete}
+              onClick={() => setCurrentStep(3)}
               className="liquid-glass-btn text-base px-8 py-3"
-              disabled={!verificationQR}
+              disabled={!formData.fullName.trim()}
             >
               Continue to Payment
             </button>
           </div>
         )
 
-      case 4:
+      case 3:
         return (
           <div className="text-center">
             <h2 className="text-2xl font-bold premium-gradient-text mb-4 tracking-tight">Payment Process</h2>
