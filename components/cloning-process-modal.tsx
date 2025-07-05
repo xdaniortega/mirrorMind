@@ -695,7 +695,7 @@ export default function CloningProcessModal({ isOpen, onClose }: CloningProcessM
                         {formData.knowledgeBase || 'No knowledge base provided'}
                       </p>
                     </div>
-                  </div>
+              </div>
 
                   <div>
                     <h4 className="text-sm font-semibold text-slate-300 mb-2">Uploaded Files</h4>
@@ -727,7 +727,7 @@ export default function CloningProcessModal({ isOpen, onClose }: CloningProcessM
                     <span>$15 USDC</span>
                   </div>
                   <div className="flex justify-between text-slate-300">
-                    <span>Platform Fee</span>
+                  <span>Platform Fee</span>
                     <span>$5 USDC</span>
                   </div>
                   <div className="border-t border-white/10 pt-4 flex justify-between font-bold text-white text-lg">
