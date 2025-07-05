@@ -39,7 +39,7 @@ agent_info = tool.invoke(
         "name": "mirror_mind_gamma_" + uid_suf,
         "port": 8080,
         "seed": "mirrormind.server.demo." + uid_suf,
-        "description": "A LangGraph-based Tavily-powered search agent",
+        "description": "A LangGraph-based agent",
         "api_token": API_TOKEN,
         "endpoint": "http://0.0.0.0:8080/submit",
         # "mailbox": True,
