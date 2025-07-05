@@ -163,13 +163,7 @@ contract AgentRegistry is SelfVerificationRoot, Ownable, ReentrancyGuard {
         if (bytes(name).length == 0) {
             revert NameRequired();
         }
-        if (pricePerService < minimumServicePrice) {
-            revert PriceTooLow();
-        }
-        if (pricePerService > maximumServicePrice) {
-            revert PriceTooHigh();
-        }
-        
+
         // Transfer creator fee from user to contract
         if (!paymentToken.transferFrom(msg.sender, address(this), creatorAgentFee)) {
             revert TransferFailed();
@@ -212,12 +206,6 @@ contract AgentRegistry is SelfVerificationRoot, Ownable, ReentrancyGuard {
         }
         if (bytes(name).length == 0) {
             revert NameRequired();
-        }
-        if (pricePerService < minimumServicePrice) {
-            revert PriceTooLow();
-        }
-        if (pricePerService > maximumServicePrice) {
-            revert PriceTooHigh();
         }
         
         Agent storage agent = agents[agentId];
