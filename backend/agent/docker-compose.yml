@@ -1,0 +1,22 @@
+version: '1'
+
+services:
+  mirror-agent-alpha:
+    image: mirrormindregistry.azurecr.io/mirrormind-agent:latest
+    ports:
+      - "8080:8080"
+    environment:
+      MODE: llm-agent
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  mirror-agent-beta:
+    image: mirrormindregistry.azurecr.io/mirrormind-agent:latest
+    ports:
+      - "8081:8080"
+    environment:
+      MODE: api-router
+    env_file:
+      - .env
+    restart: unless-stopped
