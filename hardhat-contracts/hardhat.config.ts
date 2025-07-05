@@ -2,6 +2,8 @@ import type { HardhatUserConfig } from "hardhat/config";
 
 import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
 import { configVariable } from "hardhat/config";
+import hardhatVerify from "@nomicfoundation/hardhat-verify";
+
 
 const config: HardhatUserConfig = {
   /*
@@ -11,7 +13,7 @@ const config: HardhatUserConfig = {
    * Note: A `hardhat-toolbox` like plugin for Hardhat 3 hasn't been defined yet,
    * so this list is larger than what you would normally have.
    */
-  plugins: [hardhatToolboxViemPlugin],
+  plugins: [hardhatToolboxViemPlugin, hardhatVerify],
   solidity: {
     /*
      * Hardhat 3 supports different build profiles, allowing you to configure
@@ -63,6 +65,11 @@ const config: HardhatUserConfig = {
    *   (e.g., a missing private key or API key). More info about this can be
    *   found in the "Sending a Transaction to Optimism Sepolia" of the README.
    */
+  verify: {
+    etherscan: {
+      apiKey: configVariable("ETHERSCAN_API_KEY"),
+    },
+  },
   networks: {
     hardhatMainnet: {
       type: "edr",

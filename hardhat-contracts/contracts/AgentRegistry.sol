@@ -114,6 +114,10 @@ contract AgentRegistry is SelfVerificationRoot, Ownable, ReentrancyGuard {
     {
         paymentToken = IERC20(_paymentToken);
     }
+
+    function setScope(uint256 _scope) external {
+        _setScope(_scope);
+    } 
     
     // Self Protocol integration
     function getConfigId(
@@ -149,8 +153,7 @@ contract AgentRegistry is SelfVerificationRoot, Ownable, ReentrancyGuard {
         users[userAddress].isVerified = true;
         users[userAddress].lastActivity = block.timestamp;
         
-        emit UserVerified(
-            userAddress);
+        emit UserVerified(userAddress);
     }
     
     // Agent management functions
