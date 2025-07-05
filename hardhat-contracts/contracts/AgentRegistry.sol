@@ -99,7 +99,7 @@ contract AgentRegistry is SelfVerificationRoot, Ownable, ReentrancyGuard {
     uint256 public constant BASIS_POINTS = 10000;
     uint256 public minimumServicePrice = 1000000; // 1 USDC minimum
     uint256 public maximumServicePrice = 1000000000; // 1000 USDC maximum
-    uint256 public creatorAgentFee = 50000000; // 50 USDC (50 * 10^6)
+    uint256 public creatorAgentFee = 10000; // 0.01 USDC (1 * 10^4)
     
     // USDC token address (Celo USDC)
     IERC20 public paymentToken;

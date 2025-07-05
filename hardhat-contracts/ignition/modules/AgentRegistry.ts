@@ -3,7 +3,7 @@ import 'dotenv/config';
 
 const IDENTITY_VERIFICATION_HUB = process.env.IDENTITY_VERIFICATION_HUB!;
 const SCOPE = process.env.SCOPE!;
-const CELO_TESTNET_USDC = "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1"; // Puedes parametrizarlo si lo necesitas
+const CELO_TESTNET_USDC = process.env.CELO_TESTNET_USDC!;
 
 export default buildModule("AgentRegistryModule", (m) => {
   const agentRegistry = m.contract("AgentRegistry", [
