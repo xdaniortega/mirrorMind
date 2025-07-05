@@ -62,17 +62,14 @@ export default function CloningProcessModal({ isOpen, onClose }: CloningProcessM
     return new SelfAppBuilder({
       appName: "MirrorMind AI Clone",
       scope: "mirrormind-clone", // Keep under 25 characters
-      endpoint: "https://v0-react-web3-8e8z3ru3n-blockbyvlog-4382s-projects.vercel.app/api/verify",
+      endpoint: "0x8861eD313bd3548C160Cd66d305957A418CC4E8A",
       endpointType: "staging_celo", // Use staging for development
       logoBase64: "",
       userId: userAddress,
       userIdType: "hex",
       version: 2, // V2 configuration
-      userDefinedData: "",
       disclosures: {
-        // Only request age verification (18+)
         minimumAge: 18,
-        // Optional: Add OFAC compliance for financial services
         ofac: true
       },
       devMode: true // Set to false for production

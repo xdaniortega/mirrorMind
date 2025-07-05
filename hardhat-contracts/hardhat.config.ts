@@ -1,6 +1,7 @@
-import { HardhatUserConfig, configVariable } from "hardhat/config";
+import type { HardhatUserConfig } from "hardhat/config";
 
 import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
+import { configVariable } from "hardhat/config";
 
 const config: HardhatUserConfig = {
   /*
@@ -42,22 +43,6 @@ const config: HardhatUserConfig = {
         },
       },
     },
-    /*
-     * Hardhat 3 natively supports remappings and makes extensive use of them
-     * internally to fully support npm resolution rules (i.e., it supports
-     * transitive dependencies, multiple versions of the same package,
-     * monorepos, etc.).
-     */
-    remappings: [
-      /*
-       * This remapping is added to the example because most people import
-       * forge-std/Test.sol, not forge-std/src/Test.sol.
-       *
-       * Note: The config currently leaks internal IDs, but this will be fixed
-       * in the future.
-       */
-      "forge-std/=npm/forge-std@1.9.4/src/",
-    ],
   },
   /*
    * The `networks` configuration is mostly compatible with Hardhat 2.
@@ -87,11 +72,22 @@ const config: HardhatUserConfig = {
       type: "edr",
       chainType: "optimism",
     },
-    sepolia: {
+    hardhat: {      
+      type: "edr",
+      chainType: "l1",
+      chainId: 44787,
+      // Configuración del fork de Celo Alfajores - temporalmente deshabilitado
+      // forking: {
+      //   enabled: true,
+      //   url: process.env.CELO_ALFAJORES_RPC_URL || "https://alfajores-forno.celo-testnet.org",
+      // },
+    },
+    celoAlfajores: {
       type: "http",
       chainType: "l1",
-      url: configVariable("SEPOLIA_RPC_URL"),
-      accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
+      url: configVariable("CELO_ALFAJORES_RPC_URL"),
+      accounts: [configVariable("PRIVATE_KEY")],
+      chainId: 44787,
     },
   },
 };
