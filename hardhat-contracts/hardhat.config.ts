@@ -85,9 +85,9 @@ const config: HardhatUserConfig = {
     celoAlfajores: {
       type: "http",
       chainType: "l1",
-      url: process.env.CELO_ALFAJORES_RPC_URL || "https://alfajores-forno.celo-testnet.org",
+      url: configVariable("CELO_ALFAJORES_RPC_URL"),
+      accounts: [configVariable("PRIVATE_KEY")],
       chainId: 44787,
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
   },
 };
