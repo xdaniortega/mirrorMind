@@ -22,6 +22,12 @@ yarn-error.log*
 # vercel
 .vercel
 
+# SSL certificates
+*.crt
+*.csr
+*.pem
+
+.venv
 # typescript
 *.tsbuildinfo
 next-env.d.ts
