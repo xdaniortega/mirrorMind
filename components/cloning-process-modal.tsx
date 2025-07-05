@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { SelfQRcodeWrapper, SelfAppBuilder } from "@selfxyz/qrcode"
+import { SelfQRcodeWrapper, SelfAppBuilder, countries } from "@selfxyz/qrcode"
 import { usePrivy } from '@privy-io/react-auth'
+import { ethers } from "ethers"
 
 interface CloningProcessModalProps {
   isOpen: boolean
@@ -50,33 +51,31 @@ export default function CloningProcessModal({ isOpen, onClose }: CloningProcessM
       return null
     }
 
-    // Create user defined data for context
-    const userDefinedData = JSON.stringify({
-      action: "age_verification",
-      required_age: 18
-    })
+    // Encode user wallet address using abi.encode for robust contract decoding
+    const userData = ethers.AbiCoder.defaultAbiCoder().encode(
+      ["address"], 
+      [userAddress]
+    )
 
-    // Convert to hex and pad to 64 bytes (128 hex characters)
-    const hexData = Buffer.from(userDefinedData).toString('hex').padEnd(128, '0')
-
+    console.log("address", userAddress);
     return new SelfAppBuilder({
-      appName: "MirrorMind AI Clone",
-      scope: "mirrormind-clone", // Keep under 25 characters
-      endpoint: "https://v0-react-web3-8e8z3ru3n-blockbyvlog-4382s-projects.vercel.app/api/verify",
+      appName: "MirrorMind AI",
+      scope: "myapp", // Keep under 25 characters
+      endpoint: "0x94F4592e651B2899e6394B02fFD2bE020a9A1867",
       endpointType: "staging_celo", // Use staging for development
       logoBase64: "",
       userId: userAddress,
       userIdType: "hex",
       version: 2, // V2 configuration
-      userDefinedData: "",
+      userDefinedData: userData,
       disclosures: {
-        // Only request age verification (18+)
         minimumAge: 18,
-        // Optional: Add OFAC compliance for financial services
-        ofac: true
+        ofac: true,
+        excludedCountries: [countries.BAHRAIN, countries.ANGOLA, countries.ALGERIA, countries.ALAND_ISLANDS]
       },
       devMode: true // Set to false for production
     }).build()
+
   }
 
   const renderStepContent = () => {
