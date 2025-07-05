@@ -1,11 +1,12 @@
-from IPython.display import Image, display
-
 import getpass
+
+from IPython.display import Image, display
 
 from langchain.chat_models import init_chat_model
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langchain_core.messages import HumanMessage
+from langchain_openai import ChatOpenAI
 
 import os
 
@@ -24,10 +25,7 @@ class MirrorMindAgent:
     def __init__(self):
         graph_builder = StateGraph(State)
 
-        if not os.environ.get("ANTHROPIC_API_KEY"):
-            os.environ["ANTHROPIC_API_KEY"] = getpass.getpass("Anthropic API Key:\n")
-
-        llm = init_chat_model("anthropic:claude-3-5-sonnet-latest")
+        llm = init_chat_model("anthropic:claude-3-5-sonnet-latest") if os.environ.get("ANTHROPIC_API_KEY") else init_chat_model("openai:chatgpt-o4")
 
         def chatbot(state: State):
             return {"messages": [llm.invoke(state["messages"])]}
