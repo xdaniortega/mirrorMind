@@ -12,6 +12,20 @@ from mirror_mind_agent import MirrorMindAgent
 
 load_dotenv()
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
+if not os.environ.get("ANTHROPIC_API_KEY") and not os.environ.get("OPENAI_API_KEY"):
+    os.environ["ANTHROPIC_API_KEY"] = getpass.getpass("Anthropic API Key:\n")
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+if not os.environ.get("ANTHROPIC_API_KEY") and not os.environ.get("OPENAI_API_KEY"):
+    os.environ["ANTHROPIC_API_KEY"] = getpass.getpass("Anthropic API Key:\n")
+
 if not os.environ.get("AGENTVERSE_API_KEY"):
     os.environ["AGENTVERSE_API_KEY"] = getpass.getpass("Agent Verse API Key:\n")
 
@@ -32,7 +46,7 @@ agent_info = tool.invoke(
         "name": "mirror_mind_gamma_" + uid_suf,
         "port": 8080,
         "seed": "mirrormind.server.demo." + uid_suf,
-        "description": "A LangGraph-based Tavily-powered search agent",
+        "description": "A LangGraph-based agent",
         "api_token": API_TOKEN,
         "endpoint": "http://0.0.0.0:8080/submit",
         # "mailbox": True,
