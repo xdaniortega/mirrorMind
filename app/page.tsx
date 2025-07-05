@@ -7,7 +7,7 @@ import ProfileModal from "@/components/profile-modal"
 import ChatInterface from "@/components/chat-interface"
 import type { Agent } from "@/types/agent"
 import Link from "next/link"
-import { transformMetadataAgent } from "@/lib/agent-transformers"
+import { fetchAgentFromAlliance } from "@/lib/agent-transformers"
 
 const testimonials = [
   {
@@ -49,16 +49,12 @@ export default function HomePage() {
         setError(null)
         
         // Fetch specific agents by name from the alliance API
-        const response = await fetch('/api/agents/alliance?names=Neural Nexus,Synthetic Mind')
-        const result = await response.json()
+        const result = await fetchAgentFromAlliance('Neural Nexus,Synthetic Mind')
         
-        if (result.success) {
-          // Transform the API data to match the Agent type
-          const transformedAgents: Agent[] = result.data.agents.map(transformMetadataAgent)
-          
-          setAgents(transformedAgents)
+        if (result.success && result.data) {
+          setAgents(result.data)
         } else {
-          setError('Failed to fetch agents')
+          setError(result.error || 'Failed to fetch agents')
         }
       } catch (err) {
         console.error('Error fetching agents:', err)
@@ -279,7 +275,7 @@ export default function HomePage() {
                     </div>
                   </div>
                 </div>
-                <Link href="/create" className="clean-btn-primary w-full text-sm py-3">
+                <Link href="/create" className="clean-btn-primary w-full text-sm py-3 px-6">
                   Create My Clone
                 </Link>
               </div>
@@ -345,7 +341,7 @@ export default function HomePage() {
                     </div>
                   </div>
                 </div>
-                <Link href="/create" className="clean-btn-primary w-full text-sm py-3">
+                <Link href="/create" className="clean-btn-primary w-full text-sm py-3 px-6">
                   Create Assistant
                 </Link>
               </div>

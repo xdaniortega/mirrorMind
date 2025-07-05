@@ -42,12 +42,6 @@ export default function Navbar() {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8">
           <Link
-            href="/assistants"
-            className="text-slate-300 hover:text-white transition-colors duration-200 font-medium text-sm"
-          >
-            Assistants
-          </Link>
-          <Link
             href="/create"
             className="text-slate-300 hover:text-white transition-colors duration-200 font-medium text-sm"
           >

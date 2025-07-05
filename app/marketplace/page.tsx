@@ -7,7 +7,7 @@ import AgentCard from "@/components/agent-card"
 import ProfileModal from "@/components/profile-modal"
 import ChatInterface from "@/components/chat-interface"
 import type { Agent, FilterState } from "@/types/agent"
-import { transformMetadataAgent } from "@/lib/agent-transformers"
+import { fetchAgentFromAlliance } from "@/lib/agent-transformers"
 
 export default function MarketplacePage() {
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
@@ -35,17 +35,13 @@ export default function MarketplacePage() {
         setLoading(true)
         setError(null)
         
-        // Fetch from the agents metadata API
-        const response = await fetch('/api/agents/metadata')
-        const result = await response.json()
+        // Fetch specific agents by name from the alliance API
+        const result = await fetchAgentFromAlliance()
         
-        if (result.success) {
-          // Transform the API data to match the Agent type
-          const transformedAgents: Agent[] = result.data.agents.map(transformMetadataAgent)
-          
-          setAgents(transformedAgents)
+        if (result.success && result.data) {
+          setAgents(result.data)
         } else {
-          setError('Failed to fetch agents')
+          setError(result.error || 'Failed to fetch agents')
         }
       } catch (err) {
         console.error('Error fetching agents:', err)
