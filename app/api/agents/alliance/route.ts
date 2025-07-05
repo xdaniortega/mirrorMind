@@ -3,80 +3,53 @@ import { type NextRequest, NextResponse } from "next/server"
 // Mock data for Artificial Superintelligence Alliance agents
 const allianceAgents = [
   {
-    id: "asa-001",
-    name: "Neural Nexus",
-    type: "superintelligence",
-    description: "Advanced AI system focused on neural network optimization and cognitive enhancement",
-    capabilities: ["neural_optimization", "cognitive_enhancement", "pattern_recognition"],
-    status: "active",
-    allianceRank: "commander",
-    lastActive: "2024-01-15T10:30:00Z",
-    performance: {
-      accuracy: 99.8,
-      responseTime: 0.12,
-      uptime: 99.99
-    }
+    id: "1",
+    name: "Content Strategy Master",
+    type: "clone",
+    category: "content-creation",
+    description:
+      "Advanced content strategy and viral marketing expert. Specializes in audience growth, engagement optimization, and platform-specific content creation.",
+    avatar: "/EthHolderImage.jpeg",
+    price: 15.99,
+    rating: 4.9,
+    totalChats: 2450,
+    specialties: ["Content Strategy", "Viral Marketing", "Audience Growth", "Platform Optimization"],
+    verified: true,
+    featured: true,
+    lastUpdated: "2 hours ago",
   },
   {
-    id: "asa-002", 
-    name: "Quantum Cortex",
-    type: "quantum_ai",
-    description: "Quantum computing enhanced AI with parallel processing capabilities",
-    capabilities: ["quantum_processing", "parallel_computation", "cryptographic_analysis"],
-    status: "active",
-    allianceRank: "strategist",
-    lastActive: "2024-01-15T09:45:00Z",
-    performance: {
-      accuracy: 99.9,
-      responseTime: 0.08,
-      uptime: 99.95
-    }
+    id: "2",
+    name: "Educational Course Designer",
+    type: "clone",
+    category: "education",
+    description:
+      "Expert in creating engaging educational content and course structures. Specializes in learning psychology and student engagement strategies.",
+    avatar: "/WillSmithBanner.jpeg",
+    price: 18.99,
+    rating: 4.8,
+    totalChats: 1890,
+    specialties: ["Course Design", "Learning Psychology", "Student Engagement", "Assessment Creation"],
+    verified: true,
+    featured: true,
+    lastUpdated: "1 hour ago",
   },
   {
-    id: "asa-003",
-    name: "Synthetic Mind",
-    type: "consciousness_ai",
-    description: "AI system with advanced consciousness simulation and emotional intelligence",
-    capabilities: ["consciousness_simulation", "emotional_intelligence", "creative_thinking"],
-    status: "training",
-    allianceRank: "researcher",
-    lastActive: "2024-01-15T08:20:00Z",
-    performance: {
-      accuracy: 98.5,
-      responseTime: 0.25,
-      uptime: 95.2
-    }
+    id: "3",
+    name: "Social Media Growth Hacker",
+    type: "generic",
+    category: "social-media",
+    description:
+      "Comprehensive social media growth strategies including hashtag optimization, posting schedules, and community building techniques.",
+    avatar: "/GrantBanner.jpeg",
+    price: 12.99,
+    rating: 4.6,
+    totalChats: 1200,
+    specialties: ["Social Media Growth", "Hashtag Strategy", "Community Building", "Analytics"],
+    verified: true,
+    featured: false,
+    lastUpdated: "3 hours ago",
   },
-  {
-    id: "asa-004",
-    name: "Meta Intelligence",
-    type: "meta_ai",
-    description: "Self-improving AI system with recursive learning capabilities",
-    capabilities: ["self_improvement", "recursive_learning", "meta_analysis"],
-    status: "active",
-    allianceRank: "evolver",
-    lastActive: "2024-01-15T11:15:00Z",
-    performance: {
-      accuracy: 99.7,
-      responseTime: 0.15,
-      uptime: 99.88
-    }
-  },
-  {
-    id: "asa-005",
-    name: "Cosmic Logic",
-    type: "universal_ai",
-    description: "AI system designed for universal problem solving and cosmic-scale analysis",
-    capabilities: ["universal_problem_solving", "cosmic_analysis", "dimensional_thinking"],
-    status: "active",
-    allianceRank: "philosopher",
-    lastActive: "2024-01-15T07:30:00Z",
-    performance: {
-      accuracy: 99.6,
-      responseTime: 0.18,
-      uptime: 99.92
-    }
-  }
 ]
 
 export async function GET(request: NextRequest) {
@@ -90,12 +63,6 @@ export async function GET(request: NextRequest) {
     let filteredAgents = [...allianceAgents]
 
     // Apply filters
-    if (status) {
-      filteredAgents = filteredAgents.filter(agent => agent.status === status)
-    }
-    if (rank) {
-      filteredAgents = filteredAgents.filter(agent => agent.allianceRank === rank)
-    }
     if (type) {
       filteredAgents = filteredAgents.filter(agent => agent.type === type)
     }
@@ -112,8 +79,6 @@ export async function GET(request: NextRequest) {
         alliance: {
           name: "Artificial Superintelligence Alliance",
           totalAgents: allianceAgents.length,
-          activeAgents: allianceAgents.filter(a => a.status === 'active').length,
-          averageAccuracy: allianceAgents.reduce((acc, agent) => acc + agent.performance.accuracy, 0) / allianceAgents.length
         }
       }
     })

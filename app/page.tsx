@@ -49,7 +49,7 @@ export default function HomePage() {
         setError(null)
         
         // Fetch specific agents by name from the alliance API
-        const result = await fetchAgentFromAlliance('Neural Nexus,Synthetic Mind')
+        const result = await fetchAgentFromAlliance('Content Strategy Master,Educational Course Designer')
         
         if (result.success && result.data) {
           setAgents(result.data)
