@@ -12,6 +12,13 @@ from mirror_mind_agent import MirrorMindAgent
 
 load_dotenv()
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
+if not os.environ.get("ANTHROPIC_API_KEY") and not os.environ.get("OPENAI_API_KEY"):
+    os.environ["ANTHROPIC_API_KEY"] = getpass.getpass("Anthropic API Key:\n")
+
 if not os.environ.get("AGENTVERSE_API_KEY"):
     os.environ["AGENTVERSE_API_KEY"] = getpass.getpass("Agent Verse API Key:\n")
 
