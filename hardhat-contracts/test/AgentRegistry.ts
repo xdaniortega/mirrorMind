@@ -48,7 +48,7 @@ describe("AgentRegistry Fork Test", async function () {
 
     assert.equal(agentRegistryScope, BigInt(SCOPE));
     assert.equal(usdcToken, CELO_TESTNET_USDC);
-    assert.equal(creatorAgentFee, 50n * 10n**6n); // 50 USDC
+    assert.equal(creatorAgentFee, 1n * 10n**4n); // 0.01 USDC
     assert.equal(platformFee, 500n); // 5% (500 basis points)  
     });
 
@@ -99,7 +99,7 @@ describe("AgentRegistry Fork Test", async function () {
     ]);
 
     // Test setting creator agent fee
-    const newFee = 100n * 10n**6n; // 100 USDC
+    const newFee = 2n * 10n**4n; // 0.02 USDC
     await agentRegistry.write.setCreatorAgentFee([newFee]);
     const updatedFee = await agentRegistry.read.creatorAgentFee();
     assert.equal(updatedFee, newFee);

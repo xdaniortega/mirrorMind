@@ -76,18 +76,18 @@ const config: HardhatUserConfig = {
       type: "edr",
       chainType: "l1",
       chainId: 44787,
-      // Configuración del fork de Celo Alfajores
-      forking: {
-        enabled: true,
-        url: process.env.CELO_ALFAJORES_RPC_URL || "https://alfajores-forno.celo-testnet.org",
-      },
+      // Configuración del fork de Celo Alfajores - temporalmente deshabilitado
+      // forking: {
+      //   enabled: true,
+      //   url: process.env.CELO_ALFAJORES_RPC_URL || "https://alfajores-forno.celo-testnet.org",
+      // },
     },
     celoAlfajores: {
       type: "http",
       chainType: "l1",
-      url: process.env.CELO_ALFAJORES_RPC_URL || "https://alfajores-forno.celo-testnet.org",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      url: process.env.CELO_ALFAJORES_RPC || "https://alfajores-forno.celo-testnet.org",
       chainId: 44787,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
   },
 };
