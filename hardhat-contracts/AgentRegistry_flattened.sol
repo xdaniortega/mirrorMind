@@ -7,13 +7,6 @@
 // Original license: SPDX_License_Identifier: MIT
 pragma solidity ^0.8.20;
 
-
-
-
-
-
-
-
 /**
  * @title AgentRegistry
  * @dev Registry for AI agents with user verification and payment management

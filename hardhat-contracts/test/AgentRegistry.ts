@@ -106,4 +106,18 @@ describe("AgentRegistry Fork Test", async function () {
 
     console.log("✅ AgentRegistry functionality test passed");
   });
+  it("should extract the correct address from userData", async function () {
+  const [owner] = await viem.getWalletClients();
+  const agentRegistry = await viem.deployContract("AgentRegistry", [
+    CELO_TESTNET_HUB,
+    BigInt(SCOPE),
+    CONFIG_ID,
+    CELO_TESTNET_USDC
+  ]);
+  const userAddress = owner.account.address.replace("0x", "");
+  const hexData = userAddress.padEnd(128, "0");
+  const userData = ("0x" + hexData) as `0x${string}`;
+  const extracted = await agentRegistry.read.extractUserAddress([userData]);
+    assert.equal(extracted.toLowerCase(), owner.account.address.toLowerCase());
+});
 });

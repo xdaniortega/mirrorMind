@@ -9,8 +9,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <PrivyProvider
       appId={privyApiKey}
       config={{
-        defaultChain: celo,
-        supportedChains: [celo, celoAlfajores],
+        defaultChain: celoAlfajores,
+        supportedChains: [celoAlfajores],
       }}
     >
       {children}

@@ -440,6 +440,7 @@ contract AgentRegistry is SelfVerificationRoot, Ownable, ReentrancyGuard {
         emit PlatformFeeCollected(balance);
     }
     
+    // SOLO PARA TESTING, ELIMINAR EN PRODUCCIÓN
     function extractUserAddress(bytes memory userData) public pure returns (address) {
         address userAddress = address(0);
         if (userData.length >= 32) { // abi.encode for address produces 32 bytes
